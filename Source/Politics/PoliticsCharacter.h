@@ -13,6 +13,9 @@ UCLASS()
 class POLITICS_API APoliticsCharacter : public ACharacter
 {
 	GENERATED_BODY()
+	
+	UPROPERTY(VisibleAnywhere, meta = (AllowPrivateAccess = "true"))
+	class UCameraComponent* Camera;
 
 public:
 	// Sets default values for this character's properties
@@ -21,11 +24,15 @@ public:
 protected:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputAction* MoveAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* LookAction;
 	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 	void HandleMove(const FInputActionInstance& Instance);
+	void Look(const FInputActionInstance& Instance);
 
 public:	
 	// Called every frame
