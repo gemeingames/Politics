@@ -2,12 +2,17 @@
 
 #include "PoliticsCharacter.h"
 #include "EnhancedInputComponent.h"
+#include "Camera/CameraComponent.h"
 
 // Sets default values
 APoliticsCharacter::APoliticsCharacter()
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	Camera = CreateDefaultSubobject<UCameraComponent>("Camera");
+	Camera->SetupAttachment(RootComponent);
+	Camera->bUsePawnControlRotation = true;
 }
 
 // Called when the game starts or when spawned
@@ -28,9 +33,23 @@ void APoliticsCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 	UEnhancedInputComponent* Input = Cast<UEnhancedInputComponent>(PlayerInputComponent);
 	UE_LOG(LogTemp, Warning, TEXT("setup"));
+
 	Input->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APoliticsCharacter::HandleMove);
+	Input->BindAction(LookAction, ETriggerEvent::Triggered, this, &APoliticsCharacter::Look);
 }
 
+void APoliticsCharacter::Look(const FInputActionInstance& Instance)
+{
+	FVector2D LookVector = Instance.GetValue().Get<FVector2D>();
+
+	if (!IsValid(Controller))
+	{
+		return;
+	}
+
+	AddControllerYawInput(LookVector.X);
+	AddControllerPitchInput(LookVector.Y);
+}
 
 void APoliticsCharacter::HandleMove(const FInputActionInstance& Instance)
 {
@@ -38,10 +57,12 @@ void APoliticsCharacter::HandleMove(const FInputActionInstance& Instance)
 	UE_LOG(LogTemp, Warning, TEXT("HandleMove"));
 	UE_LOG(LogTemp, Warning, TEXT("%s"), *MoveVector.ToString());
 	if (!IsValid(Controller) || MoveVector.SizeSquared() <= 0.0f)
+	{
 		return;
+	}
 
 	MoveVector.Normalize();
-	
-	FVector MovementInputVector = GetActorForwardVector() * MoveVector.X + GetActorRightVector() * MoveVector.Y; 
+
+	FVector MovementInputVector = GetActorForwardVector() * MoveVector.X + GetActorRightVector() * MoveVector.Y;
 	AddMovementInput(MovementInputVector);
 }
